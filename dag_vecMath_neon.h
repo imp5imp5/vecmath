@@ -194,10 +194,20 @@ VECMATH_FINLINE vec4f VECTORCALL v_rcp_est_x(vec4f a) { return vrecpeq_f32(a); }
 
 #if VECMATH_ARM_64
 
+VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a)
+{
+  float32x2_t e = vdiv_f32(vdup_n_f32(1.0f), vget_low_f32(a));
+  return vcombine_f32(e, e);
+}
+
+VECMATH_FINLINE vec4f VECTORCALL v_div_x(vec4f a, vec4f b)
+{
+  float32x2_t e = vdiv_f32(vget_low_f32(a), vget_low_f32(b));
+  return vcombine_f32(e, e);
+}
+
 VECMATH_FINLINE vec4f VECTORCALL v_rcp(vec4f a) { return vdivq_f32(V_C_ONE, a); }
-VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a) { return vdivq_f32(V_C_ONE, a); }
 VECMATH_FINLINE vec4f VECTORCALL v_div(vec4f a, vec4f b) { return vdivq_f32(a, b); }
-VECMATH_FINLINE vec4f VECTORCALL v_div_x(vec4f a, vec4f b) { return vdivq_f32(a, b); }
 
 #else // not VECMATH_ARM_64
 
