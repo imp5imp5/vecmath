@@ -299,17 +299,9 @@ VECMATH_FINLINE vec4i VECTORCALL v_packus16(vec4i a, vec4i b) { return _mm_packu
 VECMATH_FINLINE vec4i VECTORCALL v_packus16(vec4i a) { return _mm_packus_epi16(a,a); }
 
 VECMATH_FINLINE vec4f VECTORCALL v_rcp_est(vec4f a) { return _mm_rcp_ps(a); }
-VECMATH_FINLINE vec4f VECTORCALL v_rcp(vec4f a)
-{
-  __m128 y0 = _mm_rcp_ps(a);
-  return _mm_sub_ps(_mm_add_ps(y0, y0), _mm_mul_ps(a, _mm_mul_ps(y0, y0)));
-}
+VECMATH_FINLINE vec4f VECTORCALL v_rcp(vec4f a) { return v_div(V_C_ONE, a); }
 VECMATH_FINLINE vec4f VECTORCALL v_rcp_est_x(vec4f a) { return _mm_rcp_ss(a); }
-VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a)
-{
-  __m128 y0 = _mm_rcp_ss(a);
-  return _mm_sub_ss(_mm_add_ss(y0, y0), _mm_mul_ss(a, _mm_mul_ss(y0, y0)));
-}
+VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a) { return v_div_x(V_C_ONE, a); }
 
 VECMATH_FINLINE vec4f VECTORCALL v_rsqrt4_fast(vec4f a) { return _mm_rsqrt_ps(a); }
 VECMATH_FINLINE vec4f VECTORCALL v_rsqrt4(vec4f a) { return v_rcp(_mm_sqrt_ps(a)); }
@@ -955,7 +947,7 @@ VECMATH_FINLINE int64_t VECTORCALL v_extract_xi64 ( vec4i a )
     int64_t t; _mm_storel_epi64((__m128i*)&t, a); return t;
 #endif
 }
-VECMATH_FINLINE vec4i VECTORCALL v_splatsi64(int64_t a) {return _mm_loadl_epi64((const __m128i*)&a);}
+VECMATH_FINLINE vec4i VECTORCALL v_splatsi64(int64_t a) { return _mm_set1_epi64x(a); }
 
 VECMATH_FINLINE short VECTORCALL v_extract_xi16(vec4i v) {return (short)_mm_extract_epi16(v, 0);}
 
