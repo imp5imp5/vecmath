@@ -6,7 +6,7 @@
 */
 #pragma once
 
-#include <vecmath/dag_vecMath.h>
+#include "dag_vecMath.h"
 
 #define _MINUS_DP1         -0.78515625f
 #define _MINUS_DP2         -2.4187564849853515625e-4f
