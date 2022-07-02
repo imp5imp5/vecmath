@@ -269,17 +269,27 @@ void base_test()
     printf("exp2(%f) = %0.9f\n\n", fv.x, v_extract_x(v_exp2(a)));
   }
 
-  /*float v = -4.1f;
-  for (int i = 0; i < 10000000; i++)
+  for (int i = 0; i < 64; i++)
   {
-    fv.set(v, 0.0f, 0.0f, 0.0f);
+    fv.set(i, 1.0f, 1.0f, 1.0f);
     a = v_ldu(&fv.x);
-    float vexp = v_extract_x(v_exp2(a));
-    float mexp = exp2f(v);
-    if (fabs(vexp - mexp) > 0.0006f)
-      printf("error at %g, %g %g   error=%g\n", v, vexp, mexp, fabs(vexp - mexp));
-    v = nextafterf(v, pos_inf);
-  }*/
+    float res = v_extract_x(v_exp2(a));
+    if (res != 1ull << uint64_t(i))
+      printf("FAIL: exp2(%f) = %0.9f\n", fv.x, res);
+    //printf("exp2(%f) = %0.9f\n", fv.x, );
+  }
+
+  for (int i = 0; i < 64; i++)
+  {
+    fv.set(-i, 1.0f, 1.0f, 1.0f);
+    a = v_ldu(&fv.x);
+    float res = v_extract_x(v_exp2(a));
+    if (res != 1.f / (1ull << uint64_t(i)))
+      printf("FAIL: exp2(%f) = %0.19f\n", fv.x, res);
+    //printf("exp2(%f) = %0.9f\n", fv.x, );
+  }
+
+
 
 /*  a = v_sin_x(v_splats(5e6f));
   float r = v_extract_x(v_exp2(a));  FAIL
@@ -308,6 +318,44 @@ void base_test()
   a = v_ldu(&fv.x);
   r = v_extract_x(v_exp2(a));
   TEST(r == 16.0f);
+
+
+  float v = -200.0f;
+  int error_cnt = 0;
+  int i = 0;
+  float maxError = 0.f;
+  double errorSum = 0.f;
+  for (; i < 400 * 1000; i++)
+  {
+    fv.set(v, 0.0f, 0.0f, 0.0f);
+    a = v_ldu(&fv.x);
+    float vexp = v_extract_x(v_exp2(a));
+    float mexp = exp2f(v);
+
+    if (isfinite(vexp) && isfinite(mexp))
+    {
+      float error = fabs(fabs(vexp - mexp) / (mexp + vexp + 1e-30f));
+      errorSum += error;
+      if (maxError < error)
+        maxError = error;
+
+      if (fabs(vexp - mexp) > 1e-12f && error > 0.001f)
+      {
+        printf("FAIL: exp2: error at %g, %g %g   error=%g\n", v, vexp, mexp, fabs(vexp - mexp));
+        error_cnt++;
+        if (error_cnt > 6)
+          break;
+      }
+    }
+    //v = nextafterf(v, pos_inf);
+    v += 0.001f;
+  }
+
+  errorSum /= 400 * 1000;
+
+  printf("exp: maxError=%g  midError=%g\n", maxError, errorSum);
+
+
 
   a = v_zero();
   iv.set(0, 0, 0, 0);
@@ -475,5 +523,4 @@ void base_test()
 } // namespace mathtest
 
 #endif
-
 
