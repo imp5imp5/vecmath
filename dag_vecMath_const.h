@@ -10,6 +10,7 @@
 #pragma once
 
 #include "dag_vecMathDecl.h"
+#include <float.h>
 
 #if defined(_MSC_VER) && !defined(__clang__)
   #define DECL_VEC_CONST extern const __declspec(selectany) __declspec(align(16))
@@ -32,6 +33,7 @@
 
 #if _TARGET_SIMD_SSE
   DECL_VEC_CONST vec4f_const V_C_HALF = { REPLICATE(0.5f) };
+  DECL_VEC_CONST vec4f_const V_C_HALF_MINUS_EPS = { REPLICATE(0.5f - FLT_EPSILON * 32) };
   DECL_VEC_CONST vec4f_const V_C_ONE = { REPLICATE(1.0f) };
   DECL_VEC_CONST vec4f_const V_C_TWO = { REPLICATE(2.0f) };
   DECL_VEC_CONST vec4f_const V_C_PI = { REPLICATE(3.141592f) };                  // pi
@@ -83,6 +85,7 @@
 
 #elif _TARGET_SIMD_NEON
   #define V_C_HALF            vdupq_n_f32(0.5f)
+  #define V_C_HALF_MINUS_EPS  vdupq_n_f32(0.5f - FLT_EPSILON * 32)
   #define V_C_ONE             vdupq_n_f32(1.0f)
   #define V_C_TWO             vdupq_n_f32(2.0f)
   #define V_C_PI              vdupq_n_f32(3.141592f)           // pi
