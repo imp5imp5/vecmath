@@ -1972,7 +1972,11 @@ VECMATH_INLINE vec4f VECTORCALL v_exp2_est_p2(vec4f x)
 
 VECMATH_INLINE vec4f VECTORCALL v_exp2(vec4f x)
 {
-  EXP_DEF_PART
+  vec4i ipart;
+  vec4f fpart, expipart, expfpart;
+  ipart = v_cvt_roundi(v_sub(v_add(x, V_CI_07FFFFF), V_CI_07FFFFF));
+  fpart = v_sub(x, v_cvt_vec4f(ipart));
+  expipart = v_cast_vec4f(v_slli(v_addi(ipart, v_splatsi(127)), 23));
   expfpart = POLY5(fpart, 9.9999994e-1f, 6.9315308e-1f, 2.4015361e-1f, 5.5826318e-2f, 8.9893397e-3f, 1.8775767e-3f);
   return v_sel(v_mul(expipart, expfpart), expipart, v_cmp_eq(fpart, v_zero()));//ensure that exp2(int) = 2^int
 }
