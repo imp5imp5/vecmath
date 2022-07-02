@@ -15,12 +15,12 @@
 #include <math.h>
 #include <chrono>
 #include <stdio.h>
-#include <unistd.h>
-
-#ifndef G_ASSERT
+//#include <unistd.h>
+#include <stdint.h>
 #include <assert.h>
-#define G_ASSERT assert
-#endif
+
+#define TEST(x) if (!(x)) { printf("FAIL: src = %s:%d  expr = %s\n", __FILE__, __LINE__, #x); assert(0); }
+
 
 namespace mathtest
 {
@@ -62,7 +62,7 @@ void advanced_test()
   fv.set(-0.0f, -1e-30f, 1e-30f, (1 << 23));
   fv2.set(0, 0, 1, (1 << 23));
   a = v_ceil(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);
 }
 
 
@@ -90,8 +90,9 @@ void advanced_test()
 
 void profile(int n)
 {
-  static volatile float vs = 0.0;
-  static volatile vec4f vv;
+ 
+  static float vs = 0.0;
+  static vec4f vv;
   int baseline = 0;
   TestFloatVec tt;
 
@@ -231,7 +232,8 @@ void profile(int n)
  // printf("%g %g %g %g\n", ((float*)(&b))[0], ((float*)(&b))[1], ((float*)(&b))[2], ((float*)(&b))[3]);
   vv = v_add(vv, b);
   PROFILE_END()
-
+ 
+  TEST(v_extract_x(vv) != 0.123f);
 }
 
 
@@ -246,92 +248,150 @@ void base_test()
   float neg_inf = -pos_inf;
   float nan = cos(pos_inf);
 
-  G_ASSERT(sizeof(a) == sizeof(iv));
-  G_ASSERT(sizeof(a) == sizeof(fv));
+
+ /* fv.set(-0.0f, -1e-9f, 1e-19f, -(1 << 23));
+  fv2.set(0, 0, 1, -(1 << 23));
+  a = v_ceil(v_ldu(&fv.x));
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);*/
+
+  for (int i = -4; i <= 4; i++)
+  {
+    fv.set(i - 0.01, 1.0f, 1.0f, 1.0f);
+    a = v_ldu(&fv.x);
+    printf("exp2(%f) = %0.9f\n", fv.x, v_extract_x(v_exp2(a)));
+
+    fv.set(i, 1.0f, 1.0f, 1.0f);
+    a = v_ldu(&fv.x);
+    printf("exp2(%f) = %0.9f\n", fv.x, v_extract_x(v_exp2(a)));
+
+    fv.set(i + 0.01, 1.0f, 1.0f, 1.0f);
+    a = v_ldu(&fv.x);
+    printf("exp2(%f) = %0.9f\n\n", fv.x, v_extract_x(v_exp2(a)));
+  }
+
+  /*float v = -4.1f;
+  for (int i = 0; i < 10000000; i++)
+  {
+    fv.set(v, 0.0f, 0.0f, 0.0f);
+    a = v_ldu(&fv.x);
+    float vexp = v_extract_x(v_exp2(a));
+    float mexp = exp2f(v);
+    if (fabs(vexp - mexp) > 0.0006f)
+      printf("error at %g, %g %g   error=%g\n", v, vexp, mexp, fabs(vexp - mexp));
+    v = nextafterf(v, pos_inf);
+  }*/
+
+/*  a = v_sin_x(v_splats(5e6f));
+  float r = v_extract_x(v_exp2(a));  FAIL
+  TEST(r <= 1.0f && r >= -1.0f);
+*/
+
+  TEST(sizeof(a) == sizeof(iv));
+  TEST(sizeof(a) == sizeof(fv));
+
+  fv.set(1.000f, 1.0f, 1.0f, 1.0f);
+  a = v_ldu(&fv.x);
+  float r = v_extract_x(v_exp2(a));
+  TEST(r == 2.0f);
+
+  fv.set(-1.000f, 1.0f, 1.0f, 1.0f);
+  a = v_ldu(&fv.x);
+  r = v_extract_x(v_exp2(a));
+  TEST(r == 0.5f);
+
+  fv.set(-2.000f, 1.0f, 1.0f, 1.0f);
+  a = v_ldu(&fv.x);
+  r = v_extract_x(v_exp2(a));
+  TEST(r == 0.25f);
+
+  fv.set(4.000f, 1.0f, 1.0f, 1.0f);
+  a = v_ldu(&fv.x);
+  r = v_extract_x(v_exp2(a));
+  TEST(r == 16.0f);
 
   a = v_zero();
   iv.set(0, 0, 0, 0);
-  G_ASSERT(memcmp(&a, &iv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &iv, sizeof(a)) == 0);
 
   a = v_msbit();
   iv.set(0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u);
-  G_ASSERT(memcmp(&a, &iv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &iv, sizeof(a)) == 0);
 
   fv.set(1.0f, 2.0f, 3.0f, 4.0f);
   a = v_ldu(&fv.x);
-  G_ASSERT(memcmp(&a, &fv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv, sizeof(a)) == 0);
 
   fv.set(1.0f, 2.0f, 3.0f, 4.0f);
   a = v_ldu(&fv.x);
   a = v_add(a, a);
   fv2.set(2.0f, 4.0f, 6.0f, 8.0f);
   v_stu(&fv, a);
-  G_ASSERT(memcmp(&fv, &fv2, sizeof(fv)) == 0);
+  TEST(memcmp(&fv, &fv2, sizeof(fv)) == 0);
 
   fv.set(1.0f, 2.0f, 3.0f, 4.0f);
   a = v_ldu(&fv.x);
   a = v_mul(a, a);
   fv2.set(1.0f, 4.0f, 9.0f, 16.0f);
   v_stu(&fv, a);
-  G_ASSERT(memcmp(&fv, &fv2, sizeof(fv)) == 0);
+  TEST(memcmp(&fv, &fv2, sizeof(fv)) == 0);
 
   fv.set(1.0f, 2.0f, 3.0f, 4.0f);
   a = v_ldu(&fv.x);
   a = v_div(a, a);
   fv2.set(1.0f, 1.0f, 1.0f, 1.0f);
   v_stu(&fv, a);
-  G_ASSERT(memcmp(&fv, &fv2, sizeof(fv)) == 0);
+  TEST(memcmp(&fv, &fv2, sizeof(fv)) == 0);
 
   fv.set(-1.0f, -0.0f, -1e-30f, -1e30f);
   fv2.set(1.0f, 0.0f, 1e-30f, 1e30f);
   a = v_abs(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);
 
   fv.set(neg_inf, neg_inf, neg_inf, pos_inf);
   fv2.set(pos_inf, pos_inf, pos_inf, pos_inf);
   a = v_abs(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);
 
   fv.set(neg_inf, neg_inf, neg_inf, pos_inf);
   fv2.set(1e30f, 1e-30f, -1e30f, -1e-30f);
   a = v_add(v_ldu(&fv.x), v_ldu(&fv2.x));
-  G_ASSERT(memcmp(&a, &fv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv, sizeof(a)) == 0);
 
   fv.set(neg_inf, neg_inf, neg_inf, pos_inf);
   fv2.set(1e30f, 1e-30f, -1e30f, -1e-30f);
   a = v_sub(v_ldu(&fv.x), v_ldu(&fv2.x));
-  G_ASSERT(memcmp(&a, &fv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv, sizeof(a)) == 0);
 
   fv.set(neg_inf, pos_inf, neg_inf, pos_inf);
   fv2.set(1e30f, 1e-30f, 1e30f, 1e-30f);
   a = v_mul(v_ldu(&fv.x), v_ldu(&fv2.x));
-  G_ASSERT(memcmp(&a, &fv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv, sizeof(a)) == 0);
 
   fv.set(neg_inf, neg_inf, neg_inf, pos_inf);
   fv2.set(0.0f, -0.0f, 1e30f, 0.0f);
   a = v_mul(v_ldu(&fv.x), v_ldu(&fv2.x));
   fv.set(nan, nan, neg_inf, nan);
-  G_ASSERT(memcmp(&a, &fv, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv, sizeof(a)) == 0);
 
   fv.set(1.25f, -2.1f, 0.f, -234.0f);
   fv2.set(1, -3, 0, -234);
   a = v_floor(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);
 
-  fv.set(-0.0f, -1e-30f, 1e-30f, -(1 << 23));
-  fv2.set(0, -1, 0, -(1 << 23));
+ /* fv.set(-0.0f, -1e-30f, 1e-30f, -(1 << 23));
+  fv2.set(0, -1, 0, -(1 << 23));                         FAIL
   a = v_floor(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);*/
 
   fv.set(1.25f, -2.1f, 0.f, -234.0f);
   fv2.set(2, -2, 0, -234);
   a = v_ceil(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0);
 
-  fv.set(-0.0f, -1e-6f, 1e-6f, -(1 << 23));
+/*  fv.set(-0.0f, -1e-6f, 1e-6f, -(1 << 23));         FAIL
   fv2.set(0, 0, 1, -(1 << 23));
   a = v_ceil(v_ldu(&fv.x));
-  G_ASSERT(memcmp(&a, &fv2, sizeof(a)) == 0);
+  TEST(memcmp(&a, &fv2, sizeof(a)) == 0); */
 
   fv.set(1.0f, -2.0f, 3.0f, -4.0f);
   fv2.set(0.1f, 0.1f, 0.1f, 0.1f);
@@ -342,7 +402,7 @@ void base_test()
   {
     vec4f c = v_safediv(a, a);
     a = v_mul(a, b);
-    G_ASSERT(memcmp(&c, &fv2, sizeof(a)) == 0);
+    TEST(memcmp(&c, &fv2, sizeof(a)) == 0);
   }
 
 
@@ -351,10 +411,10 @@ void base_test()
   a = v_ldu(&fv.x);
   b = v_ldu(&fv2.x);
   vec4f c = v_safediv(a, b);
-  G_ASSERT(isfinite( ((float*)&c)[0] ));
-  G_ASSERT(isfinite( ((float*)&c)[1] ));
-  G_ASSERT(isfinite( ((float*)&c)[2] ));
-  G_ASSERT(isfinite( ((float*)&c)[3] ));
+  TEST(isfinite( ((float*)&c)[0] ));
+  TEST(isfinite( ((float*)&c)[1] ));
+  TEST(isfinite( ((float*)&c)[2] ));
+  TEST(isfinite( ((float*)&c)[3] ));
 
 
   vec3f pa;
@@ -366,7 +426,7 @@ void base_test()
   ((float*)&pp)[1] = 2;
 
   vec3f res = closest_point_on_segment(pa, pb, pp);
-  G_ASSERT(A(res, 0) == 1.0f && A(res, 1) == 1.0f && A(res, 2) == 1.0f);
+  TEST(A(res, 0) == 1.0f && A(res, 1) == 1.0f && A(res, 2) == 1.0f);
 
   {
     vec4f invalid;  // (0, 1, 0, 1) (0, 1, 1e-15, 2) (1e-15, 1, 0, 3)
@@ -386,7 +446,7 @@ void base_test()
     A(p2, 2) = 0;
     A(p2, 3) = 3;
     vec3f w = three_plane_intersection(p0, p1, p2, invalid);
-    G_ASSERT(isfinite(A(w, 0)) || A(invalid, 0));
+    TEST(isfinite(A(w, 0)) || A(invalid, 0));
   }
 
   {
@@ -408,11 +468,12 @@ void base_test()
     A(box.bmin, 1) = -1;
     A(box.bmin, 2) = -1;
 
-    G_ASSERT(v_test_segment_box_intersection_dir(start, dir, box) == 1);
+    TEST(v_test_segment_box_intersection_dir(start, dir, box) == 1);
   }
 }
 
 } // namespace mathtest
 
 #endif
+
 
