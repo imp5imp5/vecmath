@@ -1,6 +1,6 @@
 /*
  * Dagor Engine 5
- * Copyright (C) 2003-2022  Gaijin Entertainment.  All rights reserved
+ * Copyright (C) 2003-2021  Gaijin Entertainment.  All rights reserved
  *
  * (for conditions of distribution and use, see License)
 */
@@ -9,7 +9,6 @@
 #define _DAGOR_PUBLIC_MATH_DAG_VECMATH_COMMON_H_
 #pragma once
 
-#include <float.h>
 
 #include "dag_vecMath.h"
 #ifdef _MSC_VER
@@ -1017,7 +1016,7 @@ VECMATH_FINLINE vec3f VECTORCALL three_plane_intersection(plane3f p0, plane3f p1
 {
   vec4f n1_n2 = v_cross3(p1, p2), n2_n0 = v_cross3(p2, p0), n0_n1 = v_cross3(p0, p1);
   vec4f cosTheta = v_dot3(p0, n1_n2);
-  invalid = v_and(v_cmp_gt(cosTheta, v_neg(V_C_VERY_SMALL_VAL)), v_cmp_lt(cosTheta, V_C_VERY_SMALL_VAL));
+  invalid = v_cmp_lt(v_abs(cosTheta), V_C_VERY_SMALL_VAL);
   vec4f secTheta = v_rcp(cosTheta);
 
   vec4f intersectPt;
@@ -1789,7 +1788,7 @@ VECMATH_INLINE int VECTORCALL v_test_segment_box_intersection_dir(vec3f start, v
 {
   // avoid using pair of v_div (due to compiler may change them uncontrollably to v_mul(a, v_rcp(b))
   // and thus get NaN instead of expected +inf and -inf)
-  vec4f isVerySmall = v_and(v_cmp_gt(dir, v_neg(V_C_VERY_SMALL_VAL)), v_cmp_lt(dir, V_C_VERY_SMALL_VAL));
+  vec4f isVerySmall = v_cmp_lt(v_abs(dir), V_C_VERY_SMALL_VAL);
   vec3f rcp_dir = v_sel(v_rcp(dir), V_C_MAX_VAL, isVerySmall);
   vec3f l1 = v_mul(v_sub(box.bmin, start), rcp_dir);
   vec3f l2 = v_mul(v_sub(box.bmax, start), rcp_dir);
@@ -1983,8 +1982,6 @@ VECMATH_INLINE vec4f VECTORCALL v_exp2(vec4f x)
   expfpart = POLY5(fpart, 9.9999994e-1f, 6.9315308e-1f, 2.4015361e-1f, 5.5826318e-2f, 8.9893397e-3f, 1.8775767e-3f);
   return v_sel(v_mul(expipart, expfpart), expipart, v_cmp_eq(fpart, v_zero()));//ensure that exp2(int) = 2^int
 }
-
-
 
 #undef EXP_DEF_PART
 

@@ -1,6 +1,6 @@
 /*
  * Dagor Engine 5
- * Copyright (C) 2003-2022  Gaijin Entertainment.  All rights reserved
+ * Copyright (C) 2003-2021  Gaijin Entertainment.  All rights reserved
  *
  * (for conditions of distribution and use, see License)
 */

@@ -1,6 +1,6 @@
 /*
  * Dagor Engine 5
- * Copyright (C) 2003-2022  Gaijin Entertainment.  All rights reserved
+ * Copyright (C) 2003-2021  Gaijin Entertainment.  All rights reserved
  *
  * (for conditions of distribution and use, see License)
 */
@@ -190,37 +190,14 @@ VECMATH_FINLINE vec4f VECTORCALL v_rcp_iter(vec4f a, vec4f est)
 {
   return vmulq_f32(est, vrecpsq_f32(est, a));
 }
-VECMATH_FINLINE vec4f VECTORCALL v_rcp_est_x(vec4f a) { return vrecpeq_f32(a); }
-
-#if VECMATH_ARM_64
-
-VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a)
-{
-  float32x2_t e = vdiv_f32(vdup_n_f32(1.0f), vget_low_f32(a));
-  return vcombine_f32(e, e);
-}
-
-VECMATH_FINLINE vec4f VECTORCALL v_div_x(vec4f a, vec4f b)
-{
-  float32x2_t e = vdiv_f32(vget_low_f32(a), vget_low_f32(b));
-  return vcombine_f32(e, e);
-}
-
-VECMATH_FINLINE vec4f VECTORCALL v_rcp(vec4f a) { return vdivq_f32(V_C_ONE, a); }
-VECMATH_FINLINE vec4f VECTORCALL v_div(vec4f a, vec4f b) { return vdivq_f32(a, b); }
-
-#else // not VECMATH_ARM_64
-
 VECMATH_FINLINE vec4f VECTORCALL v_rcp(vec4f a)
 {
   return v_rcp_iter(a, v_rcp_iter(a, vrecpeq_f32(a)));
 }
+VECMATH_FINLINE vec4f VECTORCALL v_rcp_est_x(vec4f a) { return vrecpeq_f32(a); }
 VECMATH_FINLINE vec4f VECTORCALL v_rcp_x(vec4f a) { return v_rcp(a); }
 VECMATH_FINLINE vec4f VECTORCALL v_div(vec4f a, vec4f b) { return v_mul(a, v_rcp(b)); }
 VECMATH_FINLINE vec4f VECTORCALL v_div_x(vec4f a, vec4f b) { return v_mul(a, v_rcp(b)); }
-
-#endif
-
 VECMATH_FINLINE vec4f VECTORCALL v_min(vec4f a, vec4f b) { return vminq_f32(a, b); }
 VECMATH_FINLINE vec4f VECTORCALL v_max(vec4f a, vec4f b) { return vmaxq_f32(a, b); }
 VECMATH_FINLINE vec4f VECTORCALL v_neg(vec4f a) { return vnegq_f32(a); }

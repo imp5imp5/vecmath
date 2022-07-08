@@ -1,6 +1,6 @@
 /*
  * Dagor Engine 5
- * Copyright (C) 2003-2022  Gaijin Entertainment.  All rights reserved
+ * Copyright (C) 2003-2021  Gaijin Entertainment.  All rights reserved
  *
  * (for conditions of distribution and use, see License)
 */
@@ -115,11 +115,6 @@ typedef const struct bsph3f& bsph3f_cref;
   typedef int32x4_t   vec4i;
   typedef const vec4f vec4f_const;
   typedef const vec4i vec4i_const;
-
-  #if (defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || \
-                          defined(_M_ARM64EC) || __aarch64__ || defined(__AARCH64_SIMD__))
-  #define VECMATH_ARM_64 1
-  #endif
 
 #else
  !error! unsupported target

@@ -1,12 +1,12 @@
 /*
  * Dagor Engine 5
- * Copyright (C) 2003-2022  Gaijin Entertainment.  All rights reserved
+ * Copyright (C) 2003-2021  Gaijin Entertainment.  All rights reserved
  *
  * (for conditions of distribution and use, see License)
 */
 #pragma once
 
-#include "dag_vecMath.h"
+#include <vecmath/dag_vecMath.h>
 
 #define _MINUS_DP1         -0.78515625f
 #define _MINUS_DP2         -2.4187564849853515625e-4f
